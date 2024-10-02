@@ -99,12 +99,14 @@ func (c *Cache) Get(key string) (value interface{}, err error) {
 
 // GetMulti gets caches from memory.
 // if non-existed or expired, return nil.
-func (c *Cache) GetMulti(names []string) []interface{} {
+func (c *Cache) GetMulti(keys []string) []interface{} {
 	var rc []interface{}
-	for _, name := range names {
-		v, _ := c.Get(name)
+
+	for _, key := range keys {
+		v, _ := c.Get(key)
 		rc = append(rc, v)
 	}
+
 	return rc
 }
 
