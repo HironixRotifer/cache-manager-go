@@ -10,8 +10,8 @@ import (
 var (
 	defaultSize int
 
-	KeyNotFound = errors.New("key not found")
-	CacheIsOut  = errors.New("cache is out of date")
+	ErrKeyNotFound = errors.New("key not found")
+	ErrCacheIsOut  = errors.New("cache is out of date")
 )
 
 type Cache struct {
@@ -26,8 +26,8 @@ type Cache struct {
 
 type Value struct {
 	Value      interface{} `json:"value"`
-	createdAt  time.Time   `json:"created_at"`
-	expiration int64       `json:"expiration"` // Актуальность кэша
+	CreatedAt  time.Time   `json:"created_at"`
+	Expiration int64       `json:"expiration"` // Актуальность кэша
 }
 
 // NewCache Create a new cache container.
@@ -72,8 +72,8 @@ func (c *Cache) Set(key string, value interface{}, duration time.Duration) {
 
 	c.m[key] = Value{
 		Value:      value,
-		expiration: expiration,
-		createdAt:  time.Now(),
+		Expiration: expiration,
+		CreatedAt:  time.Now(),
 	}
 }
 
@@ -85,12 +85,12 @@ func (c *Cache) Get(key string) (value interface{}, err error) {
 
 	val, ok := c.m[key]
 	if !ok {
-		return nil, KeyNotFound
+		return nil, ErrKeyNotFound
 	}
 
-	if val.expiration > 0 {
-		if time.Now().UnixNano() > val.expiration {
-			return nil, CacheIsOut
+	if val.Expiration > 0 {
+		if time.Now().UnixNano() > val.Expiration {
+			return nil, ErrCacheIsOut
 		}
 	}
 
@@ -116,7 +116,7 @@ func (c *Cache) Delete(key string) error {
 	defer c.mutex.Unlock()
 
 	if _, ok := c.m[key]; !ok {
-		return KeyNotFound
+		return ErrKeyNotFound
 	}
 
 	delete(c.m, key)
@@ -146,10 +146,10 @@ func (c *Cache) Expire(key string) (bool, error) {
 
 	val, ok := c.m[key]
 	if !ok {
-		return false, KeyNotFound
+		return false, ErrKeyNotFound
 	}
 
-	if time.Now().UnixNano() > val.expiration && val.expiration > 0 {
+	if time.Now().UnixNano() > val.Expiration && val.Expiration > 0 {
 		return true, nil
 	}
 
@@ -186,7 +186,7 @@ func (c *Cache) expiredKeys() (keys []string) {
 	defer c.mutex.RUnlock()
 
 	for k, i := range c.m {
-		if time.Now().UnixNano() > i.expiration && i.expiration > 0 {
+		if time.Now().UnixNano() > i.Expiration && i.Expiration > 0 {
 			keys = append(keys, k)
 		}
 	}

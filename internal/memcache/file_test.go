@@ -1,6 +1,7 @@
 package memcache
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 	"time"
@@ -10,7 +11,8 @@ import (
 
 func TestSaveFile(t *testing.T) {
 	var relativePath = "../../test.json"
-	var expectedResult = `{"hello": {"value": "world"}}`
+	var expectedResult = "world"
+	var actualResult = make(map[string]Value, 1)
 
 	cache := NewCache(1, 1*time.Minute, 1*time.Minute)
 	cache.Set("hello", "world", 5*time.Minute)
@@ -21,9 +23,10 @@ func TestSaveFile(t *testing.T) {
 	file, err := os.ReadFile(relativePath)
 	assert.NoError(t, err)
 
-	actualResult := string(file)
+	err = json.Unmarshal(file, &actualResult)
+	assert.NoError(t, err)
 
-	assert.JSONEq(t, expectedResult, actualResult)
+	assert.Equal(t, expectedResult, actualResult["hello"].Value)
 }
 
 func TestLoadFile(t *testing.T) {

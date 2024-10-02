@@ -3,7 +3,6 @@ package memcache
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 )
 
@@ -43,15 +42,11 @@ func (c *Cache) LoadFile(relativePath string) error {
 	}
 	defer file.Close()
 
-	newMap := make(map[string]interface{}, defaultSize)
-
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&c.m)
 	if err != nil {
 		return errDecodeJSON
 	}
-
-	fmt.Println(newMap)
 
 	return nil
 }
